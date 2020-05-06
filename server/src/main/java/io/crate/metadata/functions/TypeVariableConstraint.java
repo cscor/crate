@@ -22,34 +22,48 @@
 
 package io.crate.metadata.functions;
 
+import io.crate.types.TypeSignature;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Writeable;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class TypeVariableConstraint implements Writeable {
 
     public static TypeVariableConstraint typeVariable(String name) {
-        return new TypeVariableConstraint(name, false);
+        return new TypeVariableConstraint(name, List.of(), false);
     }
 
     public static TypeVariableConstraint typeVariableOfAnyType(String name) {
-        return new TypeVariableConstraint(name, true);
+        return new TypeVariableConstraint(name, List.of(), true);
     }
 
     private final String name;
+    private final List<TypeSignature> excludedTypes;
     private final boolean anyAllowed;
 
-    private TypeVariableConstraint(String name, boolean anyAllowed) {
+    private TypeVariableConstraint(String name, List<TypeSignature> excludedTypes, boolean anyAllowed) {
         this.name = name;
+        this.excludedTypes = excludedTypes;
         this.anyAllowed = anyAllowed;
     }
 
     public TypeVariableConstraint(StreamInput in) throws IOException {
         name = in.readString();
         anyAllowed = in.readBoolean();
+        int argsSize = in.readVInt();
+        excludedTypes = new ArrayList<>(argsSize);
+        for (int i = 0; i < argsSize; i++) {
+            excludedTypes.add(TypeSignature.fromStream(in));
+        }
+    }
+
+    public List<TypeSignature> getExcludedTypes() {
+        return excludedTypes;
     }
 
     public String getName() {
@@ -60,10 +74,15 @@ public class TypeVariableConstraint implements Writeable {
         return anyAllowed;
     }
 
+    public TypeVariableConstraint withExcludedTypes(TypeSignature... excludedTypes) {
+        return new TypeVariableConstraint(name, List.of(excludedTypes), anyAllowed);
+    }
+
     @Override
     public void writeTo(StreamOutput out) throws IOException {
         out.writeString(name);
         out.writeBoolean(anyAllowed);
+        out.writeCollection(excludedTypes);
     }
 
     @Override

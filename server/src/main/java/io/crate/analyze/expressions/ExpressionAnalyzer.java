@@ -131,6 +131,7 @@ import io.crate.sql.tree.WindowFrame;
 import io.crate.types.ArrayType;
 import io.crate.types.DataType;
 import io.crate.types.DataTypes;
+import io.crate.types.ObjectType;
 import io.crate.types.UndefinedType;
 import org.joda.time.Period;
 
@@ -401,7 +402,11 @@ public class ExpressionAnalyzer {
         int size = symbolsToCast.size();
         List<Symbol> castList = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            castList.add(symbolsToCast.get(i).cast(targetTypes.get(i), false));
+            var symbolToCast = symbolsToCast.get(i);
+            if (ArrayType.unnest(symbolToCast.valueType()).id() != ObjectType.ID) {
+                symbolToCast = symbolToCast.cast(targetTypes.get(i), false);
+            }
+            castList.add(symbolToCast);
         }
         return castList;
     }

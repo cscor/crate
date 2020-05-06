@@ -241,6 +241,12 @@ public class SignatureBinder {
             if (typeVariableConstraint == null) {
                 return true;
             }
+
+            if (typeVariableConstraint.getExcludedTypes()
+                .stream()
+                .anyMatch(v -> v.getBaseTypeName().equals(actualTypeSignature.getBaseTypeName()))) {
+                return false;
+            }
             resultBuilder.add(new TypeParameterSolver(formalTypeSignature.getBaseTypeName(), actualTypeSignature.createType()));
             return true;
         }
