@@ -19,6 +19,11 @@
 
 package org.elasticsearch.repositories;
 
+
+import java.io.IOException;
+import java.util.List;
+import java.util.function.Function;
+
 import org.apache.lucene.index.IndexCommit;
 import org.elasticsearch.Version;
 import org.elasticsearch.action.ActionListener;
@@ -36,9 +41,7 @@ import org.elasticsearch.snapshots.SnapshotId;
 import org.elasticsearch.snapshots.SnapshotInfo;
 import org.elasticsearch.snapshots.SnapshotShardFailure;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.function.Function;
+import io.crate.analyze.repositories.TypeSettings;
 
 /**
  * An interface for interacting with a repository in snapshot and restore.
@@ -71,6 +74,8 @@ public interface Repository extends LifecycleComponent {
         default Repository create(RepositoryMetaData metaData, Function<String, Repository.Factory> typeLookup) throws Exception {
             return create(metaData);
         }
+
+        TypeSettings settings();
     }
 
     /**

@@ -97,7 +97,6 @@ import org.apache.logging.log4j.Logger;
 import org.elasticsearch.Version;
 import org.elasticsearch.action.admin.cluster.repositories.delete.TransportDeleteRepositoryAction;
 import org.elasticsearch.action.admin.cluster.repositories.put.TransportPutRepositoryAction;
-import org.elasticsearch.analysis.common.CommonAnalysisPlugin;
 import org.elasticsearch.cluster.ClusterChangedEvent;
 import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.cluster.EmptyClusterInfoService;
@@ -136,6 +135,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
@@ -261,8 +261,7 @@ public class SQLExecutor {
                 homeDir.toPath().resolve("config")
             );
             try {
-                analysisRegistry = new AnalysisModule(environment, singletonList(new CommonAnalysisPlugin()))
-                    .getAnalysisRegistry();
+                analysisRegistry = new AnalysisModule(environment, List.of()).getAnalysisRegistry();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

@@ -23,7 +23,6 @@
 package io.crate.analyze;
 
 import io.crate.analyze.repositories.RepositoryParamValidator;
-import io.crate.analyze.repositories.RepositorySettingsModule;
 import io.crate.sql.tree.Expression;
 import io.crate.sql.tree.GenericProperties;
 import io.crate.sql.tree.GenericProperty;
@@ -42,8 +41,7 @@ public class RepositoryParamValidatorTest extends CrateUnitTest {
 
     @Before
     public void initValidator() {
-        validator = new ModulesBuilder()
-            .add(new RepositorySettingsModule()).createInjector().getInstance(RepositoryParamValidator.class);
+        validator = new ModulesBuilder().createInjector().getInstance(RepositoryParamValidator.class);
     }
 
     @Test

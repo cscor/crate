@@ -466,9 +466,11 @@ public class Node implements Closeable {
             final HttpServerTransport httpServerTransport = newHttpTransport(networkModule);
 
 
-            modules.add(new RepositoriesModule(this.environment,
-                                               pluginsService.filterPlugins(RepositoryPlugin.class),
-                                               xContentRegistry, threadPool));
+            modules.add(new RepositoriesModule(
+                this.environment,
+                pluginsService.filterPlugins(RepositoryPlugin.class),
+                xContentRegistry, threadPool)
+            );
 
             final DiscoveryModule discoveryModule = new DiscoveryModule(this.settings,
                                                                         threadPool,

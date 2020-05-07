@@ -22,7 +22,6 @@
 package io.crate.analyze;
 
 import io.crate.analyze.repositories.RepositoryParamValidator;
-import io.crate.analyze.repositories.RepositorySettingsModule;
 import io.crate.data.Row;
 import io.crate.exceptions.RepositoryAlreadyExistsException;
 import io.crate.exceptions.RepositoryUnknownException;
@@ -72,7 +71,6 @@ public class CreateDropRepositoryAnalyzerTest extends CrateDummyClusterServiceUn
         e = SQLExecutor.builder(clusterService).build();
         plannerContext = e.getPlannerContext(clusterService.state());
         repositoryParamValidator = new ModulesBuilder()
-            .add(new RepositorySettingsModule())
             .createInjector()
             .getInstance(RepositoryParamValidator.class);
     }

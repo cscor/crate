@@ -19,6 +19,7 @@
 
 package org.elasticsearch.repositories;
 
+import org.elasticsearch.cluster.metadata.RepositoryMetaData;
 import org.elasticsearch.common.inject.AbstractModule;
 import org.elasticsearch.common.inject.multibindings.MapBinder;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
@@ -29,6 +30,8 @@ import org.elasticsearch.snapshots.RestoreService;
 import org.elasticsearch.snapshots.SnapshotShardsService;
 import org.elasticsearch.snapshots.SnapshotsService;
 import org.elasticsearch.threadpool.ThreadPool;
+
+import io.crate.analyze.repositories.TypeSettings;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,8 +50,18 @@ public class RepositoriesModule extends AbstractModule {
                               NamedXContentRegistry namedXContentRegistry,
                               ThreadPool threadPool) {
         Map<String, Repository.Factory> factories = new HashMap<>();
-        factories.put(FsRepository.TYPE, (metadata) -> new FsRepository(metadata, env, namedXContentRegistry, threadPool));
+        factories.put(FsRepository.TYPE, new Repository.Factory() {
 
+            @Override
+            public TypeSettings settings() {
+                return new TypeSettings(FsRepository.mandatorySettings(), FsRepository.optionalSettings());
+            }
+
+            @Override
+            public Repository create(RepositoryMetaData metadata) throws Exception {
+                return new FsRepository(metadata, env, namedXContentRegistry, threadPool);
+            }
+        });
         for (RepositoryPlugin repoPlugin : repoPlugins) {
             Map<String, Repository.Factory> newRepoTypes = repoPlugin.getRepositories(env, namedXContentRegistry, threadPool);
             for (Map.Entry<String, Repository.Factory> entry : newRepoTypes.entrySet()) {
@@ -68,5 +81,15 @@ public class RepositoriesModule extends AbstractModule {
         bind(RestoreService.class).asEagerSingleton();
         MapBinder<String, Repository.Factory> typesBinder = MapBinder.newMapBinder(binder(), String.class, Repository.Factory.class);
         repositoryTypes.forEach((k, v) -> typesBinder.addBinding(k).toInstance(v));
+
+        MapBinder<String, TypeSettings> typeSettingsBinder = MapBinder.newMapBinder(
+            binder(),
+            String.class,
+            TypeSettings.class);
+        for (var e : repositoryTypes.entrySet()) {
+            String repoScheme = e.getKey();
+            var repoSettings = e.getValue().settings();
+            typeSettingsBinder.addBinding(repoScheme).toInstance(repoSettings);
+        }
     }
 }
