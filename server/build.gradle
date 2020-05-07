@@ -8,22 +8,51 @@ configurations {
 }
 
 dependencies {
-    compile project(':libs:shared')
-    implementation project(':es:es-server')
     compile project(':libs:dex')
-    compile project(':libs:sql-parser')
+    compile project(':libs:es-x-content')
     compile project(':libs:pgwire')
-    compile "com.tdunning:t-digest:3.2"
-    compile "org.hdrhistogram:HdrHistogram:2.1.9"
+    compile project(':libs:shared')
+    compile project(':libs:sql-parser')
+
+    compileOnly project(':libs:es-plugin-classloader')
+    testRuntime project(':libs:es-plugin-classloader')
 
     compile "io.netty:netty-buffer:${versions.netty4}"
-    compile "io.netty:netty-codec:${versions.netty4}"
     compile "io.netty:netty-codec-http:${versions.netty4}"
+    compile "io.netty:netty-codec:${versions.netty4}"
     compile "io.netty:netty-common:${versions.netty4}"
     compile "io.netty:netty-handler:${versions.netty4}"
     compile "io.netty:netty-resolver:${versions.netty4}"
-    compile "io.netty:netty-transport:${versions.netty4}"
     compile "io.netty:netty-transport-native-epoll:${versions.netty4}:linux-x86_64"
+    compile "io.netty:netty-transport:${versions.netty4}"
+
+    compile "org.apache.lucene:lucene-core:${versions.lucene}"
+    compile "org.apache.lucene:lucene-analyzers-common:${versions.lucene}"
+    compile "org.apache.lucene:lucene-backward-codecs:${versions.lucene}"
+    compile "org.apache.lucene:lucene-grouping:${versions.lucene}"
+    compile "org.apache.lucene:lucene-join:${versions.lucene}"
+    compile "org.apache.lucene:lucene-misc:${versions.lucene}"
+    compile "org.apache.lucene:lucene-queries:${versions.lucene}"
+    compile "org.apache.lucene:lucene-sandbox:${versions.lucene}"
+    compile "org.apache.lucene:lucene-spatial-extras:${versions.lucene}"
+    compile "org.apache.lucene:lucene-spatial3d:${versions.lucene}"
+    compile "org.apache.lucene:lucene-suggest:${versions.lucene}"
+    // lucene spatial
+    compile "org.locationtech.spatial4j:spatial4j:${versions.spatial4j}"
+    compile "org.locationtech.jts:jts-core:${versions.jts}"
+
+    compile "org.apache.logging.log4j:log4j-api:${versions.log4j2}"
+    compile "org.apache.logging.log4j:log4j-core:${versions.log4j2}"
+
+    compile("org.elasticsearch:elasticsearch-cli:${versions.elasticsearch}") {
+        exclude group: 'org.elasticsearch', module: 'elasticsearch-core'
+    }
+
+    compile "net.java.dev.jna:jna:${versions.jna}"
+
+    compile "com.tdunning:t-digest:3.2"
+    compile "org.hdrhistogram:HdrHistogram:2.1.9"
+    compile "com.carrotsearch:hppc:${versions.carrotsearch_hppc}"
 
     compile "com.google.guava:guava:${versions.guava}"
     compile "com.amazonaws:aws-java-sdk-s3:${versions.aws}"
@@ -41,19 +70,46 @@ dependencies {
     testCompile "org.postgresql:postgresql:${versions.jdbc}"
     testCompile 'com.pholser:junit-quickcheck-core:0.9'
     testCompile 'com.pholser:junit-quickcheck-generators:0.9'
-    // These plugins are dynamically loaded and need to be present here.
-    // They are required by 1) tests in :server 2) modules depending on :server.
-    // They also need to be added in :app because :server is declared non-transitive
-    // in :app (=dependencies of :server won't be included).
-    compile project(":plugins:es-repository-url")
-    compile project(":plugins:es-repository-s3")
-    compile project(":plugins:es-repository-azure")
-    compile project(":plugins:es-analysis-common")
 }
+
 //noinspection GroovyAssignabilityCheck
 task testOutputJar (type: Jar) {
     classifier = 'server-testing'
     from sourceSets.test.output
+}
+
+task getVersion(dependsOn: 'classes') {
+    doLast {
+        def stdout = new ByteArrayOutputStream()
+        javaexec {
+            if (System.getProperty('useSystemJdk') == null) {
+                executable = rootProject.jdks.runtime.getBinJavaPath()
+            }
+            classpath = sourceSets.main.runtimeClasspath
+            main = 'org.elasticsearch.Version'
+            standardOutput = stdout
+        }
+        ext.version = stdout.toString().trim().split(" ")[1].replace(',', '').trim()
+        ext.gitTag = "git describe".execute().text.trim()
+
+        ext.buildDate = new Date().format('yyyyMMddHHmm')
+        ext.buildShortHash = "git rev-parse --short HEAD".execute().text.trim()
+        if (gradle.taskGraph.hasTask(':app:release')) {
+            assert gitTag == version, "Version mismatch gitTag: " + gitTag + " does not match crate version: " + version
+        } else {
+
+            if (gradle.taskGraph.hasTask(':app:nightly')) {
+                ext.version = version.replace('-SNAPSHOT', '') + "-" + ext.buildDate + "-" + ext.buildShortHash
+            } else if (!gradle.taskGraph.hasTask(':app:uploadArchives')) {
+                ext.version = version + "-" + ext.buildShortHash
+            }
+        }
+
+        logger.quiet("gitTag:         " + gitTag)
+        logger.quiet("version:        " + version)
+        logger.quiet("buildDate:      " + buildDate)
+        logger.quiet("buildShortHash: " + buildShortHash)
+    }
 }
 
 artifacts {

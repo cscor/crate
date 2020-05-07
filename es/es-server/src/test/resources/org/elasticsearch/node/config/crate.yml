@@ -1,4 +1,0 @@
-cluster.name: testCluster
-stats.enabled: false
-psql.enabled: false
-path.logs: /some/path
