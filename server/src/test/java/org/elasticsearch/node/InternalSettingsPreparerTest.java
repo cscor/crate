@@ -78,7 +78,7 @@ public class InternalSettingsPreparerTest {
         assertThat(finalSettings.get("cluster.name"), is("custom"));
         // path.logs is not set in config_custom/crate.yml
         // so it needs to use default value and not the value set in config/crate.yml
-        assertThat(finalSettings.get("path.logs"), endsWith("/test/org/elasticsearch/node/logs"));
+        assertThat(finalSettings.get("path.logs"), endsWith("org/elasticsearch/node/logs"));
     }
 
     @Test

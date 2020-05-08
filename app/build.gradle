@@ -20,7 +20,6 @@ configurations {
     }
 }
 
-evaluationDependsOn(':es')
 evaluationDependsOn(':server')
 evaluationDependsOn(':libs:sql-parser')
 evaluationDependsOn(':libs:dex')
@@ -48,10 +47,16 @@ dependencies {
     runtime project(':enterprise:licensing')
     runtime project(':enterprise:lang-js')
 
-    testCompile project(':integration-testing')
     testCompile project(path: ':server', configuration: 'testOutput')
     testCompile("org.postgresql:postgresql:${versions.jdbc}")
+    testImplementation "org.apache.lucene:lucene-test-framework:${versions.lucene}"
     testImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${versions.jackson}"
+    testImplementation "org.hamcrest:hamcrest:${versions.hamcrest}"
+    testImplementation "org.junit.jupiter:junit-jupiter:${versions.junit5}"
+    testImplementation "junit:junit:${versions.junit}"
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine") {
+        because 'allows JUnit 3 and JUnit 4 tests to run'
+    }
     testImplementation project(path: ':libs:dex', configuration: 'testOutput')
 
     compileNotTransitive project(':server')
