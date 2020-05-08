@@ -25,11 +25,10 @@ package io.crate;
 import org.elasticsearch.bootstrap.JarHell;
 import org.junit.Test;
 
-public class SQLJarHellTest {
+public class ServerJarHellTest {
 
     @Test
     public void testInvoke() throws Exception {
         JarHell.checkJarHell(output -> {});
     }
-
 }
