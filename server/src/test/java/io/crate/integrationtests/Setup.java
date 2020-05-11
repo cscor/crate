@@ -49,8 +49,7 @@ public class Setup {
                                " kind string," +
                                " position integer," +
                                " description string," +
-                               " race object," +
-                               " index name_description_ft using fulltext(name, description) with (analyzer='english')" +
+                               " race object" +
                                ") clustered by(id) into 2 shards with(number_of_replicas=0)");
 
         String insertStmt = "insert into locations " +

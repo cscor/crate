@@ -29,11 +29,15 @@ import io.crate.planner.operators.SubQueryResults;
 import io.crate.test.integration.CrateDummyClusterServiceUnitTest;
 import io.crate.testing.SQLExecutor;
 import org.elasticsearch.action.admin.cluster.settings.ClusterUpdateSettingsRequest;
+import org.elasticsearch.analysis.common.CommonAnalysisPlugin;
+import org.elasticsearch.common.Randomness;
 import org.elasticsearch.common.settings.Settings;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
+
 
 import static io.crate.metadata.FulltextAnalyzerResolver.CustomType.ANALYZER;
 import static io.crate.metadata.FulltextAnalyzerResolver.CustomType.CHAR_FILTER;
@@ -49,7 +53,7 @@ public class CreateAnalyzerAnalyzerTest extends CrateDummyClusterServiceUnitTest
 
     @Before
     public void prepare() throws IOException {
-        e = SQLExecutor.builder(clusterService)
+        e = SQLExecutor.builder(clusterService, 1, Randomness.get(), List.of(new CommonAnalysisPlugin()))
             .enableDefaultTables()
             .build();
         plannerContext = e.getPlannerContext(clusterService.state());

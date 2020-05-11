@@ -125,6 +125,7 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.env.Environment;
 import org.elasticsearch.index.analysis.AnalysisRegistry;
 import org.elasticsearch.indices.analysis.AnalysisModule;
+import org.elasticsearch.plugins.AnalysisPlugin;
 import org.elasticsearch.test.ClusterServiceUtils;
 import org.elasticsearch.test.gateway.TestGatewayAllocator;
 
@@ -222,7 +223,10 @@ public class SQLExecutor {
         private boolean hasValidLicense = true;
         private Schemas schemas;
 
-        private Builder(ClusterService clusterService, int numNodes, Random random) {
+        private Builder(ClusterService clusterService,
+                        int numNodes,
+                        Random random,
+                        List<AnalysisPlugin> analysisPlugins) {
             Preconditions.checkArgument(numNodes >= 1, "Must have at least 1 node");
             this.random = random;
             this.clusterService = clusterService;
@@ -261,7 +265,7 @@ public class SQLExecutor {
                 homeDir.toPath().resolve("config")
             );
             try {
-                analysisRegistry = new AnalysisModule(environment, List.of()).getAnalysisRegistry();
+                analysisRegistry = new AnalysisModule(environment, analysisPlugins).getAnalysisRegistry();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -605,11 +609,14 @@ public class SQLExecutor {
     }
 
     public static Builder builder(ClusterService clusterService) {
-        return new Builder(clusterService, 1, Randomness.get());
+        return new Builder(clusterService, 1, Randomness.get(), List.of());
     }
 
-    public static Builder builder(ClusterService clusterService, int numNodes, Random random) {
-        return new Builder(clusterService, numNodes, random);
+    public static Builder builder(ClusterService clusterService,
+                                  int numNodes,
+                                  Random random,
+                                  List<AnalysisPlugin> analysisPlugins) {
+        return new Builder(clusterService, numNodes, random, analysisPlugins);
     }
 
     /**
