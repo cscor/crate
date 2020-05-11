@@ -41,6 +41,20 @@ public class Setup {
         this.transportExecutor = transportExecutor;
     }
 
+    public void setUpLocationsWithFTIndex() throws Exception {
+        transportExecutor.exec("create table locations (" +
+                               " id string primary key," +
+                               " name string," +
+                               " date timestamp with time zone," +
+                               " kind string," +
+                               " position integer," +
+                               " description string," +
+                               " race object," +
+                               " index name_description_ft using fulltext(name, description) with (analyzer='english')" +
+                               ") clustered by(id) into 2 shards with(number_of_replicas=0)");
+        insertLocations();
+    }
+
     public void setUpLocations() throws Exception {
         transportExecutor.exec("create table locations (" +
                                " id string primary key," +
@@ -51,7 +65,11 @@ public class Setup {
                                " description string," +
                                " race object" +
                                ") clustered by(id) into 2 shards with(number_of_replicas=0)");
+        insertLocations();
+    }
 
+
+    private void insertLocations() throws Exception {
         String insertStmt = "insert into locations " +
                             "(id, name, date, kind, position, description, race) " +
                             "values (?, ?, ?, ?, ?, ?, ?)";
