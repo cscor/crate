@@ -62,7 +62,10 @@ public class InternalSettingsPreparerTest {
         // Overriding value from crate.yml
         assertThat(finalSettings.get("cluster.name"), is("clusterNameOverridden"));
         // Value kept from crate.yml
-        assertThat(finalSettings.get("path.logs"), is("/some/other/path"));
+        assertThat(finalSettings.get("path.logs"), Matchers.anyOf(
+            is("/some/other/path"),
+            is("D:\\some\\other\\path")
+        ));
     }
 
     @Test
@@ -78,7 +81,10 @@ public class InternalSettingsPreparerTest {
         assertThat(finalSettings.get("cluster.name"), is("custom"));
         // path.logs is not set in config_custom/crate.yml
         // so it needs to use default value and not the value set in config/crate.yml
-        assertThat(finalSettings.get("path.logs"), endsWith("org/elasticsearch/node/logs"));
+        assertThat(finalSettings.get("path.logs"), Matchers.anyOf(
+            endsWith("org/elasticsearch/node/logs"),
+            endsWith("org\\elasticsearch\\node\\logs")
+        ));
     }
 
     @Test
