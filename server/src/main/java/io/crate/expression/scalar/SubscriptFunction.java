@@ -74,19 +74,6 @@ public class SubscriptFunction extends Scalar<Object, Object[]> {
                 FunctionInfo.of(NAME, dataTypes, new ArrayType<>(DataTypes.UNDEFINED)),
                 SubscriptFunction::lookupIntoListObjectsByName)
         );
-        // subscript(array(object)), numeric) -> object
-        module.register(
-            Signature.scalar(
-                NAME,
-                parseTypeSignature("array(object)"),
-                DataTypes.INTEGER.getTypeSignature(),
-                parseTypeSignature("object)")),
-            (signature, dataTypes) -> new SubscriptFunction(
-                signature,
-                FunctionInfo.of(NAME, dataTypes, DataTypes.UNTYPED_OBJECT),
-                SubscriptFunction::lookupByNumericIndex)
-        );
-        // subscript(array(E), numeric) -> E
         module.register(
             Signature
                 .scalar(
@@ -95,10 +82,7 @@ public class SubscriptFunction extends Scalar<Object, Object[]> {
                     DataTypes.INTEGER.getTypeSignature(),
                     parseTypeSignature("E"))
                 .withTypeVariableConstraints(
-                typeVariable("E")
-                    // `object` must be excluded to make it more specific for anything than `object`.
-                    // Otherwise the signature of `subscript(array(object()), key)` could also match on coercion.
-                    .withExcludedTypes(DataTypes.UNTYPED_OBJECT.getTypeSignature())),
+                typeVariable("E")),
             (signature, dataTypes) -> {
                 var returnType = ((ArrayType<?>) dataTypes.get(0)).innerType();
                 return new SubscriptFunction(
