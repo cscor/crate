@@ -52,6 +52,7 @@ dependencies {
     testImplementation "org.apache.lucene:lucene-test-framework:${versions.lucene}"
     testImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${versions.jackson}"
     testImplementation "org.hamcrest:hamcrest:${versions.hamcrest}"
+    testImplementation "org.mockito:mockito-core:${versions.mockito}"
     testImplementation "org.junit.jupiter:junit-jupiter:${versions.junit5}"
     testImplementation "junit:junit:${versions.junit}"
     testRuntimeOnly("org.junit.vintage:junit-vintage-engine") {
