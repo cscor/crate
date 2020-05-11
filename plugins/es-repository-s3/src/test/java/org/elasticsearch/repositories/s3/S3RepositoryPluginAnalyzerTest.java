@@ -47,6 +47,10 @@ import io.crate.data.Row;
 import io.crate.planner.PlannerContext;
 import io.crate.planner.node.ddl.CreateRepositoryPlan;
 import io.crate.planner.operators.SubQueryResults;
+import io.crate.sql.tree.Expression;
+import io.crate.sql.tree.GenericProperties;
+import io.crate.sql.tree.GenericProperty;
+import io.crate.sql.tree.StringLiteral;
 import io.crate.test.integration.CrateDummyClusterServiceUnitTest;
 import io.crate.testing.SQLExecutor;
 
@@ -93,6 +97,27 @@ public class S3RepositoryPluginAnalyzerTest extends CrateDummyClusterServiceUnit
         } else {
             throw new AssertionError("Statement of type " + analyzedStatement.getClass() + " not supported");
         }
+    }
+
+    @Test
+    public void testValidateS3ConfigParams() {
+        GenericProperties<Expression> genericProperties = new GenericProperties<>();
+        genericProperties.add(new GenericProperty<>("access_key", new StringLiteral("foobar")));
+        genericProperties.add(new GenericProperty<>("base_path", new StringLiteral("/data")));
+        genericProperties.add(new GenericProperty<>("bucket", new StringLiteral("myBucket")));
+        genericProperties.add(new GenericProperty<>("buffer_size", new StringLiteral("5mb")));
+        genericProperties.add(new GenericProperty<>("canned_acl", new StringLiteral("cannedACL")));
+        genericProperties.add(new GenericProperty<>("chunk_size", new StringLiteral("4g")));
+        genericProperties.add(new GenericProperty<>("compress", new StringLiteral("true")));
+        genericProperties.add(new GenericProperty<>("endpoint", new StringLiteral("myEndpoint")));
+        genericProperties.add(new GenericProperty<>("max_retries", new StringLiteral("8")));
+        genericProperties.add(new GenericProperty<>("protocol", new StringLiteral("http")));
+        genericProperties.add(new GenericProperty<>("secret_key", new StringLiteral("thisIsASecretKey")));
+        genericProperties.add(new GenericProperty<>("server_side_encryption", new StringLiteral("false")));
+        repositoryParamValidator.validate(
+            "s3",
+            genericProperties,
+            toSettings(genericProperties));
     }
 
 
@@ -153,4 +178,11 @@ public class S3RepositoryPluginAnalyzerTest extends CrateDummyClusterServiceUnit
         analyze(e, "CREATE REPOSITORY foo TYPE s3 WITH (access_key='test')");
     }
 
+    private static Settings toSettings(GenericProperties<Expression> genericProperties) {
+        Settings.Builder builder = Settings.builder();
+        for (Map.Entry<String, Expression> property : genericProperties.properties().entrySet()) {
+            builder.put(property.getKey(), property.getValue().toString());
+        }
+        return builder.build();
+    }
 }
